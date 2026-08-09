@@ -1,0 +1,1177 @@
+Pointer-Based Linked List Implementation
+
+1. getblk()
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #define HASH_SIZE 4
+    #define BUFFER_COUNT 6
+
+    typedef struct Buffer{
+        int block_number;
+        int busy;
+        int valid;
+        int delayed_write;
+        struct Buffer *hash_next;
+        struct Buffer *free_next;
+    }Buffer;
+
+    Buffer *hash_table[HASH_SIZE];
+    Buffer *free_list=NULL;
+
+    int hash(int block_number){
+        return block_number%HASH_SIZE;
+    }
+
+    void initialize_buffer(Buffer *buffer,int block_number){
+        buffer->block_number=block_number;
+        buffer->busy=0;
+        buffer->valid=0;
+        buffer->delayed_write=0;
+        buffer->hash_next=NULL;
+        buffer->free_next=NULL;
+    }
+
+    void insert_into_hash(Buffer *buffer){
+        int index=hash(buffer->block_number);
+        buffer->hash_next=hash_table[index];
+        hash_table[index]=buffer;
+    }
+
+    void remove_from_hash(Buffer *buffer){
+        int index=hash(buffer->block_number);
+        Buffer *current=hash_table[index];
+        Buffer *previous=NULL;
+        while(current!=NULL){
+            if(current==buffer){
+                if(previous==NULL)
+                    hash_table[index]=current->hash_next;
+                else
+                    previous->hash_next=current->hash_next;
+                current->hash_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->hash_next;
+        }
+    }
+
+    void insert_into_free_list(Buffer *buffer){
+        Buffer *current;
+        buffer->free_next=NULL;
+        if(free_list==NULL){
+            free_list=buffer;
+            return;
+        }
+        current=free_list;
+        while(current->free_next!=NULL)
+            current=current->free_next;
+        current->free_next=buffer;
+    }
+
+    void remove_from_free_list(Buffer *buffer){
+        Buffer *current=free_list;
+        Buffer *previous=NULL;
+        while(current!=NULL){
+            if(current==buffer){
+                if(previous==NULL)
+                    free_list=current->free_next;
+                else
+                    previous->free_next=current->free_next;
+                current->free_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->free_next;
+        }
+    }
+
+    Buffer *search_buffer(int block_number){
+        int index=hash(block_number);
+        Buffer *current=hash_table[index];
+        while(current!=NULL){
+            if(current->block_number==block_number)
+                return current;
+            current=current->hash_next;
+        }
+        return NULL;
+    }
+
+    void write_delayed_buffer(Buffer *buffer){
+        printf("Writing delayed buffer B%d to disk...\n",buffer->block_number);
+        buffer->delayed_write=0;
+        buffer->valid=1;
+    }
+
+    Buffer *getblk(int block_number){
+        Buffer *buffer;
+        while(1){
+            buffer=search_buffer(block_number);
+            if(buffer!=NULL){
+                if(buffer->busy){
+                    printf("Buffer B%d is busy.\n",block_number);
+                    printf("Process is sleeping...\n");
+                    buffer->busy=0;
+                    printf("Buffer B%d becomes free.\n",block_number);
+                    continue;
+                }
+                buffer->busy=1;
+                remove_from_free_list(buffer);
+                printf("Buffer found in hash queue and is free.\n");
+                return buffer;
+            }
+            if(free_list==NULL){
+                printf("Free list is empty.\n");
+                printf("Process is sleeping...\n");
+                return NULL;
+            }
+            buffer=free_list;
+            remove_from_free_list(buffer);
+            if(buffer->delayed_write){
+                printf("Buffer B%d has delayed write.\n",buffer->block_number);
+                write_delayed_buffer(buffer);
+                insert_into_free_list(buffer);
+                continue;
+            }
+            remove_from_hash(buffer);
+            buffer->block_number=block_number;
+            buffer->busy=1;
+            buffer->valid=0;
+            buffer->delayed_write=0;
+            insert_into_hash(buffer);
+            return buffer;
+        }
+    }
+
+    void display_hash_queues(){
+        int i;
+        Buffer *current;
+        for(i=0;i<HASH_SIZE;i++){
+            printf("Hash[%d]: ",i);
+            current=hash_table[i];
+            while(current!=NULL){
+                printf("B%d -> ",current->block_number);
+                current=current->hash_next;
+            }
+            printf("NULL\n");
+        }
+    }
+
+    void display_free_list(){
+        Buffer *current=free_list;
+        printf("Free List: ");
+        while(current!=NULL){
+            printf("B%d -> ",current->block_number);
+            current=current->free_next;
+        }
+        printf("NULL\n");
+    }
+
+    void initialize_buffer_cache(){
+        int i;
+        Buffer *buffer;
+        for(i=0;i<HASH_SIZE;i++)
+            hash_table[i]=NULL;
+        for(i=0;i<BUFFER_COUNT;i++){
+            buffer=malloc(sizeof(Buffer));
+            if(buffer==NULL){
+                printf("Memory allocation failed.\n");
+                exit(1);
+            }
+            initialize_buffer(buffer,i);
+            insert_into_hash(buffer);
+            insert_into_free_list(buffer);
+        }
+    }
+
+    int main(){
+        int block_number;
+        Buffer *buffer;
+        initialize_buffer_cache();
+        display_hash_queues();
+        display_free_list();
+        printf("Enter block number to get: ");
+        scanf("%d",&block_number);
+        buffer=getblk(block_number);
+        if(buffer!=NULL)
+            printf("Buffer B%d successfully allocated.\n",buffer->block_number);
+        else
+            printf("Unable to allocate buffer.\n");
+        display_hash_queues();
+        display_free_list();
+        return 0;
+    }
+---------------------------------------------------------------------------------------------------
+2. bread()
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #define HASH_SIZE 4
+    #define BUFFER_COUNT 6
+
+    typedef struct Buffer{
+        int block_number;
+        int busy;
+        int valid;
+        int delayed_write;
+        char data[100];
+        struct Buffer *hash_next;
+        struct Buffer *free_next;
+    }Buffer;
+
+    Buffer *hash_table[HASH_SIZE];
+    Buffer *free_list=NULL;
+
+    int hash(int block_number){return block_number%HASH_SIZE;}
+
+    void initialize_buffer(Buffer *buffer,int block_number){
+        buffer->block_number=block_number;
+        buffer->busy=0;
+        buffer->valid=0;
+        buffer->delayed_write=0;
+        buffer->data[0]='\0';
+        buffer->hash_next=NULL;
+        buffer->free_next=NULL;
+    }
+
+    void insert_into_hash(Buffer *buffer){
+        int index=hash(buffer->block_number);
+        buffer->hash_next=hash_table[index];
+        hash_table[index]=buffer;
+    }
+
+    void remove_from_hash(Buffer *buffer){
+        int index=hash(buffer->block_number);
+        Buffer *current=hash_table[index];
+        Buffer *previous=NULL;
+        while(current!=NULL){
+            if(current==buffer){
+                if(previous==NULL) hash_table[index]=current->hash_next;
+                else previous->hash_next=current->hash_next;
+                current->hash_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->hash_next;
+        }
+    }
+
+    void insert_into_free_list(Buffer *buffer){
+        Buffer *current;
+        buffer->free_next=NULL;
+        if(free_list==NULL){free_list=buffer;return;}
+        current=free_list;
+        while(current->free_next!=NULL) current=current->free_next;
+        current->free_next=buffer;
+    }
+
+    void remove_from_free_list(Buffer *buffer){
+        Buffer *current=free_list;
+        Buffer *previous=NULL;
+        while(current!=NULL){
+            if(current==buffer){
+                if(previous==NULL) free_list=current->free_next;
+                else previous->free_next=current->free_next;
+                current->free_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->free_next;
+        }
+    }
+
+    Buffer *search_buffer(int block_number){
+        int index=hash(block_number);
+        Buffer *current=hash_table[index];
+        while(current!=NULL){
+            if(current->block_number==block_number) return current;
+            current=current->hash_next;
+        }
+        return NULL;
+    }
+
+    void read_from_disk(Buffer *buffer){
+        printf("Reading block %d from disk...\n",buffer->block_number);
+        sprintf(buffer->data,"Data of disk block %d",buffer->block_number);
+        buffer->valid=1;
+    }
+
+    Buffer *getblk(int block_number){
+        Buffer *buffer;
+        while(1){
+            buffer=search_buffer(block_number);
+            if(buffer!=NULL){
+                if(buffer->busy){buffer->busy=0;continue;}
+                buffer->busy=1;
+                remove_from_free_list(buffer);
+                return buffer;
+            }
+            if(free_list==NULL) return NULL;
+            buffer=free_list;
+            remove_from_free_list(buffer);
+            if(buffer->delayed_write){
+                buffer->delayed_write=0;
+                buffer->valid=1;
+                insert_into_free_list(buffer);
+                continue;
+            }
+            remove_from_hash(buffer);
+            buffer->block_number=block_number;
+            buffer->busy=1;
+            buffer->valid=0;
+            buffer->delayed_write=0;
+            insert_into_hash(buffer);
+            return buffer;
+        }
+    }
+
+    Buffer *bread(int block_number){
+        Buffer *buffer=getblk(block_number);
+        if(buffer==NULL) return NULL;
+        if(buffer->valid){
+            printf("CACHE HIT\n");
+            return buffer;
+        }
+        printf("CACHE MISS\n");
+        read_from_disk(buffer);
+        return buffer;
+    }
+
+    void brelse(Buffer *buffer){
+        if(buffer==NULL) return;
+        buffer->busy=0;
+        insert_into_free_list(buffer);
+    }
+
+    int main(){
+        int i,block_number;
+        Buffer *buffer;
+        for(i=0;i<HASH_SIZE;i++) hash_table[i]=NULL;
+        for(i=0;i<BUFFER_COUNT;i++){
+            buffer=malloc(sizeof(Buffer));
+            initialize_buffer(buffer,i);
+            insert_into_hash(buffer);
+            insert_into_free_list(buffer);
+        }
+        printf("Enter block number to read: ");
+        scanf("%d",&block_number);
+        buffer=bread(block_number);
+        if(buffer!=NULL){
+            printf("Data: %s\n",buffer->data);
+            brelse(buffer);
+        }
+        return 0;
+    }
+---------------------------------------------------------------------------------------------------
+3. breada()
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #define HASH_SIZE 4
+    #define BUFFER_COUNT 6
+
+    typedef struct Buffer{
+        int block_number;
+        int busy;
+        int valid;
+        int delayed_write;
+        char data[100];
+        struct Buffer *hash_next;
+        struct Buffer *free_next;
+    }Buffer;
+
+    Buffer *hash_table[HASH_SIZE];
+    Buffer *free_list=NULL;
+
+    int hash(int block_number){return block_number%HASH_SIZE;}
+
+    void initialize_buffer(Buffer *buffer,int block_number){
+        buffer->block_number=block_number;
+        buffer->busy=0;
+        buffer->valid=0;
+        buffer->delayed_write=0;
+        buffer->hash_next=NULL;
+        buffer->free_next=NULL;
+    }
+
+    void insert_into_hash(Buffer *buffer){
+        int index=hash(buffer->block_number);
+        buffer->hash_next=hash_table[index];
+        hash_table[index]=buffer;
+    }
+
+    void remove_from_hash(Buffer *buffer){
+        int index=hash(buffer->block_number);
+        Buffer *current=hash_table[index],*previous=NULL;
+        while(current!=NULL){
+            if(current==buffer){
+                if(previous==NULL) hash_table[index]=current->hash_next;
+                else previous->hash_next=current->hash_next;
+                current->hash_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->hash_next;
+        }
+    }
+
+    void insert_into_free_list(Buffer *buffer){
+        Buffer *current;
+        buffer->free_next=NULL;
+        if(free_list==NULL){free_list=buffer;return;}
+        current=free_list;
+        while(current->free_next!=NULL) current=current->free_next;
+        current->free_next=buffer;
+    }
+
+    void remove_from_free_list(Buffer *buffer){
+        Buffer *current=free_list,*previous=NULL;
+        while(current!=NULL){
+            if(current==buffer){
+                if(previous==NULL) free_list=current->free_next;
+                else previous->free_next=current->free_next;
+                current->free_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->free_next;
+        }
+    }
+
+    Buffer *search_buffer(int block_number){
+        int index=hash(block_number);
+        Buffer *current=hash_table[index];
+        while(current!=NULL){
+            if(current->block_number==block_number) return current;
+            current=current->hash_next;
+        }
+        return NULL;
+    }
+
+    void read_from_disk(Buffer *buffer){
+        printf("Reading block %d from disk...\n",buffer->block_number);
+        sprintf(buffer->data,"Data of disk block %d",buffer->block_number);
+        buffer->valid=1;
+    }
+
+    Buffer *getblk(int block_number){
+        Buffer *buffer;
+        while(1){
+            buffer=search_buffer(block_number);
+            if(buffer!=NULL){
+                if(buffer->busy){buffer->busy=0;continue;}
+                buffer->busy=1;
+                remove_from_free_list(buffer);
+                return buffer;
+            }
+            if(free_list==NULL) return NULL;
+            buffer=free_list;
+            remove_from_free_list(buffer);
+            if(buffer->delayed_write){
+                buffer->delayed_write=0;
+                buffer->valid=1;
+                insert_into_free_list(buffer);
+                continue;
+            }
+            remove_from_hash(buffer);
+            buffer->block_number=block_number;
+            buffer->busy=1;
+            buffer->valid=0;
+            insert_into_hash(buffer);
+            return buffer;
+        }
+    }
+
+    Buffer *bread(int block_number){
+        Buffer *buffer=getblk(block_number);
+        if(buffer==NULL) return NULL;
+        if(!buffer->valid) read_from_disk(buffer);
+        return buffer;
+    }
+
+    void brelse(Buffer *buffer){
+        if(buffer==NULL) return;
+        buffer->busy=0;
+        insert_into_free_list(buffer);
+    }
+
+    Buffer *breada(int block_number){
+        Buffer *buffer,*read_ahead_buffer;
+        int next_block=block_number+1;
+
+        buffer=bread(block_number);
+        if(buffer==NULL) return NULL;
+
+        read_ahead_buffer=search_buffer(next_block);
+        if(read_ahead_buffer==NULL){
+            read_ahead_buffer=getblk(next_block);
+            if(read_ahead_buffer!=NULL){
+                read_from_disk(read_ahead_buffer);
+                brelse(read_ahead_buffer);
+            }
+        }
+        return buffer;
+    }
+
+    int main(){
+        int i,block_number;
+        Buffer *buffer;
+        for(i=0;i<HASH_SIZE;i++) hash_table[i]=NULL;
+        for(i=0;i<BUFFER_COUNT;i++){
+            buffer=malloc(sizeof(Buffer));
+            initialize_buffer(buffer,i);
+            insert_into_hash(buffer);
+            insert_into_free_list(buffer);
+        }
+        printf("Enter block number: ");
+        scanf("%d",&block_number);
+        buffer=breada(block_number);
+        if(buffer!=NULL){
+            printf("Block %d is ready.\n",buffer->block_number);
+            brelse(buffer);
+        }
+        return 0;
+    }
+---------------------------------------------------------------------------------------------------
+4. bwrite()
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #define HASH_SIZE 4
+    #define BUFFER_COUNT 6
+
+    typedef struct Buffer{
+        int block_number;
+        int busy;
+        int valid;
+        int delayed_write;
+        char data[100];
+        struct Buffer *hash_next;
+        struct Buffer *free_next;
+    }Buffer;
+
+    Buffer *hash_table[HASH_SIZE];
+    Buffer *free_list=NULL;
+
+    int hash(int block_number){return block_number%HASH_SIZE;}
+
+    void initialize_buffer(Buffer *buffer,int block_number){
+        buffer->block_number=block_number;
+        buffer->busy=0;
+        buffer->valid=0;
+        buffer->delayed_write=0;
+        buffer->data[0]='\0';
+        buffer->hash_next=NULL;
+        buffer->free_next=NULL;
+    }
+
+    void insert_into_hash(Buffer *buffer){
+        int index=hash(buffer->block_number);
+        buffer->hash_next=hash_table[index];
+        hash_table[index]=buffer;
+    }
+
+    void remove_from_hash(Buffer *buffer){
+        int index=hash(buffer->block_number);
+        Buffer *current=hash_table[index],*previous=NULL;
+        while(current!=NULL){
+            if(current==buffer){
+                if(previous==NULL) hash_table[index]=current->hash_next;
+                else previous->hash_next=current->hash_next;
+                current->hash_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->hash_next;
+        }
+    }
+
+    void insert_into_free_list(Buffer *buffer){
+        Buffer *current;
+        buffer->free_next=NULL;
+        if(free_list==NULL){free_list=buffer;return;}
+        current=free_list;
+        while(current->free_next!=NULL) current=current->free_next;
+        current->free_next=buffer;
+    }
+
+    void remove_from_free_list(Buffer *buffer){
+        Buffer *current=free_list,*previous=NULL;
+        while(current!=NULL){
+            if(current==buffer){
+                if(previous==NULL) free_list=current->free_next;
+                else previous->free_next=current->free_next;
+                current->free_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->free_next;
+        }
+    }
+
+    Buffer *search_buffer(int block_number){
+        int index=hash(block_number);
+        Buffer *current=hash_table[index];
+        while(current!=NULL){
+            if(current->block_number==block_number) return current;
+            current=current->hash_next;
+        }
+        return NULL;
+    }
+
+    void write_to_disk(Buffer *buffer){
+        printf("Writing block %d to disk...\n",buffer->block_number);
+        printf("Data written: %s\n",buffer->data);
+        buffer->valid=1;
+    }
+
+    Buffer *getblk(int block_number){
+        Buffer *buffer;
+        while(1){
+            buffer=search_buffer(block_number);
+            if(buffer!=NULL){
+                if(buffer->busy){buffer->busy=0;continue;}
+                buffer->busy=1;
+                remove_from_free_list(buffer);
+                return buffer;
+            }
+            if(free_list==NULL) return NULL;
+            buffer=free_list;
+            remove_from_free_list(buffer);
+            if(buffer->delayed_write){
+                write_to_disk(buffer);
+                buffer->delayed_write=0;
+                insert_into_free_list(buffer);
+                continue;
+            }
+            remove_from_hash(buffer);
+            buffer->block_number=block_number;
+            buffer->busy=1;
+            buffer->valid=0;
+            buffer->delayed_write=0;
+            insert_into_hash(buffer);
+            return buffer;
+        }
+    }
+
+    void brelse(Buffer *buffer){
+        if(buffer==NULL) return;
+        buffer->busy=0;
+        insert_into_free_list(buffer);
+    }
+
+    void bwrite(Buffer *buffer){
+        if(buffer==NULL) return;
+        write_to_disk(buffer);
+        buffer->delayed_write=0;
+        brelse(buffer);
+    }
+
+    int main(){
+        int i,block_number;
+        Buffer *buffer;
+        for(i=0;i<HASH_SIZE;i++) hash_table[i]=NULL;
+        for(i=0;i<BUFFER_COUNT;i++){
+            buffer=malloc(sizeof(Buffer));
+            initialize_buffer(buffer,i);
+            insert_into_hash(buffer);
+            insert_into_free_list(buffer);
+        }
+        printf("Enter block number: ");
+        scanf("%d",&block_number);
+        buffer=getblk(block_number);
+        if(buffer!=NULL){
+            printf("Enter data to write: ");
+            scanf(" %99[^\n]",buffer->data);
+            buffer->valid=1;
+            buffer->delayed_write=1;
+            bwrite(buffer);
+        }
+        return 0;
+    }
+---------------------------------------------------------------------------------------------------
+5. brelse()
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #define HASH_SIZE 4
+    #define BUFFER_COUNT 6
+
+    typedef struct Buffer{
+        int block_number;
+        int busy;
+        int valid;
+        int delayed_write;
+        struct Buffer *hash_next;
+        struct Buffer *free_next;
+    }Buffer;
+
+    Buffer *hash_table[HASH_SIZE];
+    Buffer *free_list=NULL;
+
+    int hash(int block_number){return block_number%HASH_SIZE;}
+
+    void initialize_buffer(Buffer *buffer,int block_number){
+        buffer->block_number=block_number;
+        buffer->busy=0;
+        buffer->valid=0;
+        buffer->delayed_write=0;
+        buffer->hash_next=NULL;
+        buffer->free_next=NULL;
+    }
+
+    void insert_into_hash(Buffer *buffer){
+        int index=hash(buffer->block_number);
+        buffer->hash_next=hash_table[index];
+        hash_table[index]=buffer;
+    }
+
+    void insert_into_free_list(Buffer *buffer){
+        Buffer *current;
+        buffer->free_next=NULL;
+        if(free_list==NULL){free_list=buffer;return;}
+        current=free_list;
+        while(current->free_next!=NULL) current=current->free_next;
+        current->free_next=buffer;
+    }
+
+    void wakeup_processes(Buffer *buffer){
+        printf("Waking processes waiting for buffer B%d...\n",buffer->block_number);
+    }
+
+    void brelse(Buffer *buffer){
+        if(buffer==NULL) return;
+        buffer->busy=0;
+        insert_into_free_list(buffer);
+        wakeup_processes(buffer);
+    }
+
+    int main(){
+        int i;
+        Buffer *buffer;
+        for(i=0;i<HASH_SIZE;i++) hash_table[i]=NULL;
+        for(i=0;i<BUFFER_COUNT;i++){
+            buffer=malloc(sizeof(Buffer));
+            initialize_buffer(buffer,i);
+            insert_into_hash(buffer);
+            insert_into_free_list(buffer);
+        }
+        buffer=free_list;
+        buffer->busy=1;
+        brelse(buffer);
+        return 0;
+    }
+---------------------------------------------------------------------------------------------------
+6. namei()
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    #define MAX_NAME 50
+    #define MAX_PATH 200
+
+    typedef struct DirectoryEntry{
+        char name[MAX_NAME];
+        int inode_number;
+        struct DirectoryEntry *next;
+    }DirectoryEntry;
+
+    typedef struct Directory{
+        int inode_number;
+        DirectoryEntry *entries;
+    }Directory;
+
+    DirectoryEntry *create_directory_entry(char name[],int inode_number){
+        DirectoryEntry *entry=malloc(sizeof(DirectoryEntry));
+        if(entry==NULL) exit(1);
+        strcpy(entry->name,name);
+        entry->inode_number=inode_number;
+        entry->next=NULL;
+        return entry;
+    }
+
+    void add_directory_entry(Directory *directory,char name[],int inode_number){
+        DirectoryEntry *new_entry=create_directory_entry(name,inode_number);
+        DirectoryEntry *current;
+        if(directory->entries==NULL){directory->entries=new_entry;return;}
+        current=directory->entries;
+        while(current->next!=NULL) current=current->next;
+        current->next=new_entry;
+    }
+
+    int search_directory(Directory *directory,char name[]){
+        DirectoryEntry *current=directory->entries;
+        while(current!=NULL){
+            if(strcmp(current->name,name)==0) return current->inode_number;
+            current=current->next;
+        }
+        return -1;
+    }
+
+    Directory *find_directory(int inode_number){
+        static Directory root,home,user;
+        static int initialized=0;
+        if(!initialized){
+            root.inode_number=1;root.entries=NULL;
+            home.inode_number=2;home.entries=NULL;
+            user.inode_number=3;user.entries=NULL;
+            add_directory_entry(&root,"home",2);
+            add_directory_entry(&home,"user",3);
+            add_directory_entry(&user,"file.txt",4);
+            initialized=1;
+        }
+        if(inode_number==1) return &root;
+        if(inode_number==2) return &home;
+        if(inode_number==3) return &user;
+        return NULL;
+    }
+
+    int namei(char path[]){
+        char component[MAX_NAME];
+        int i,j,current_inode,next_inode;
+        Directory *directory;
+
+        if(path[0]=='/'){
+            current_inode=1;
+            i=1;
+        }
+        else{
+            current_inode=3;
+            i=0;
+        }
+
+        while(path[i]!='\0'){
+            while(path[i]=='/') i++;
+            if(path[i]=='\0') break;
+            j=0;
+            while(path[i]!='/'&&path[i]!='\0'){
+                component[j]=path[i];
+                j++;
+                i++;
+            }
+            component[j]='\0';
+            if(strcmp(component,".")==0) continue;
+            if(strcmp(component,"..")==0){current_inode=1;continue;}
+            directory=find_directory(current_inode);
+            if(directory==NULL) return -1;
+            next_inode=search_directory(directory,component);
+            if(next_inode==-1) return -1;
+            current_inode=next_inode;
+        }
+        return current_inode;
+    }
+
+    int main(){
+        char path[MAX_PATH];
+        int inode_number;
+        printf("Enter pathname: ");
+        scanf("%199s",path);
+        inode_number=namei(path);
+        if(inode_number!=-1)
+            printf("Requested inode number = %d\n",inode_number);
+        else
+            printf("Path not found.\n");
+        return 0;
+    }
+---------------------------------------------------------------------------------------------------
+7. iget()
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #define HASH_SIZE 4
+    #define INODE_COUNT 6
+
+    typedef struct Inode{
+        int inode_number;
+        int file_system;
+        int busy;
+        int reference_count;
+        int valid;
+        struct Inode *hash_next;
+        struct Inode *free_next;
+    }Inode;
+
+    Inode *inode_hash[HASH_SIZE];
+    Inode *inode_free_list=NULL;
+
+    int hash(int inode_number){return inode_number%HASH_SIZE;}
+
+    void initialize_inode(Inode *inode,int inode_number){
+        inode->inode_number=inode_number;
+        inode->file_system=1;
+        inode->busy=0;
+        inode->reference_count=0;
+        inode->valid=0;
+        inode->hash_next=NULL;
+        inode->free_next=NULL;
+    }
+
+    void insert_into_hash(Inode *inode){
+        int index=hash(inode->inode_number);
+        inode->hash_next=inode_hash[index];
+        inode_hash[index]=inode;
+    }
+
+    void insert_into_free_list(Inode *inode){
+        Inode *current;
+        inode->free_next=NULL;
+        if(inode_free_list==NULL){inode_free_list=inode;return;}
+        current=inode_free_list;
+        while(current->free_next!=NULL) current=current->free_next;
+        current->free_next=inode;
+    }
+
+    void remove_from_free_list(Inode *inode){
+        Inode *current=inode_free_list,*previous=NULL;
+        while(current!=NULL){
+            if(current==inode){
+                if(previous==NULL) inode_free_list=current->free_next;
+                else previous->free_next=current->free_next;
+                current->free_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->free_next;
+        }
+    }
+
+    Inode *search_inode(int inode_number){
+        int index=hash(inode_number);
+        Inode *current=inode_hash[index];
+        while(current!=NULL){
+            if(current->inode_number==inode_number) return current;
+            current=current->hash_next;
+        }
+        return NULL;
+    }
+
+    void read_inode_from_disk(Inode *inode){
+        printf("Reading inode %d from disk...\n",inode->inode_number);
+        inode->valid=1;
+    }
+
+    Inode *iget(int inode_number){
+        Inode *inode;
+        while(1){
+            inode=search_inode(inode_number);
+            if(inode!=NULL){
+                if(inode->busy){
+                    inode->busy=0;
+                    continue;
+                }
+                inode->busy=1;
+                remove_from_free_list(inode);
+                inode->reference_count++;
+                return inode;
+            }
+            if(inode_free_list==NULL) return NULL;
+            inode=inode_free_list;
+            remove_from_free_list(inode);
+            inode->inode_number=inode_number;
+            inode->file_system=1;
+            inode->busy=1;
+            inode->reference_count=1;
+            inode->valid=0;
+            read_inode_from_disk(inode);
+            insert_into_hash(inode);
+            return inode;
+        }
+    }
+
+    int main(){
+        int i,inode_number;
+        Inode *inode;
+        for(i=0;i<HASH_SIZE;i++) inode_hash[i]=NULL;
+        for(i=0;i<INODE_COUNT;i++){
+            inode=malloc(sizeof(Inode));
+            initialize_inode(inode,i);
+            insert_into_free_list(inode);
+        }
+        printf("Enter inode number: ");
+        scanf("%d",&inode_number);
+        inode=iget(inode_number);
+        if(inode!=NULL)
+            printf("Inode %d obtained. Reference count=%d\n",inode->inode_number,inode->reference_count);
+        else
+            printf("Unable to obtain inode.\n");
+        return 0;
+    }
+---------------------------------------------------------------------------------------------------
+8. iput()
+
+    #include <stdio.h>
+    #include <stdlib.h>
+    #define HASH_SIZE 4
+    #define INODE_COUNT 6
+
+    typedef struct Inode{
+        int inode_number;
+        int file_system;
+        int busy;
+        int reference_count;
+        int valid;
+        int modified;
+        struct Inode *hash_next;
+        struct Inode *free_next;
+    }Inode;
+
+    Inode *inode_hash[HASH_SIZE];
+    Inode *inode_free_list=NULL;
+
+    int hash(int inode_number){return inode_number%HASH_SIZE;}
+
+    void initialize_inode(Inode *inode,int inode_number){
+        inode->inode_number=inode_number;
+        inode->file_system=1;
+        inode->busy=0;
+        inode->reference_count=0;
+        inode->valid=0;
+        inode->modified=0;
+        inode->hash_next=NULL;
+        inode->free_next=NULL;
+    }
+
+    void insert_into_hash(Inode *inode){
+        int index=hash(inode->inode_number);
+        inode->hash_next=inode_hash[index];
+        inode_hash[index]=inode;
+    }
+
+    void remove_from_hash(Inode *inode){
+        int index=hash(inode->inode_number);
+        Inode *current=inode_hash[index],*previous=NULL;
+        while(current!=NULL){
+            if(current==inode){
+                if(previous==NULL) inode_hash[index]=current->hash_next;
+                else previous->hash_next=current->hash_next;
+                current->hash_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->hash_next;
+        }
+    }
+
+    void insert_into_free_list(Inode *inode){
+        Inode *current;
+        inode->free_next=NULL;
+        if(inode_free_list==NULL){inode_free_list=inode;return;}
+        current=inode_free_list;
+        while(current->free_next!=NULL) current=current->free_next;
+        current->free_next=inode;
+    }
+
+    void remove_from_free_list(Inode *inode){
+        Inode *current=inode_free_list,*previous=NULL;
+        while(current!=NULL){
+            if(current==inode){
+                if(previous==NULL) inode_free_list=current->free_next;
+                else previous->free_next=current->free_next;
+                current->free_next=NULL;
+                return;
+            }
+            previous=current;
+            current=current->free_next;
+        }
+    }
+
+    void write_inode_to_disk(Inode *inode){
+        printf("Writing inode %d to disk...\n",inode->inode_number);
+        inode->modified=0;
+    }
+
+    void wakeup_inode_processes(Inode *inode){
+        printf("Waking processes waiting for inode %d...\n",inode->inode_number);
+    }
+
+    void iput(Inode *inode){
+        if(inode==NULL) return;
+        if(inode->reference_count>0) inode->reference_count--;
+        if(inode->reference_count>0) return;
+        if(inode->modified) write_inode_to_disk(inode);
+        inode->busy=0;
+        remove_from_hash(inode);
+        insert_into_free_list(inode);
+        wakeup_inode_processes(inode);
+    }
+
+    int main(){
+        int i,inode_number;
+        Inode *inode;
+        for(i=0;i<HASH_SIZE;i++) inode_hash[i]=NULL;
+        for(i=0;i<INODE_COUNT;i++){
+            inode=malloc(sizeof(Inode));
+            initialize_inode(inode,i);
+            insert_into_free_list(inode);
+        }
+        printf("Enter inode number: ");
+        scanf("%d",&inode_number);
+        inode=inode_free_list;
+        remove_from_free_list(inode);
+        inode->inode_number=inode_number;
+        inode->busy=1;
+        inode->valid=1;
+        inode->reference_count=1;
+        inode->modified=1;
+        insert_into_hash(inode);
+        iput(inode);
+        printf("Inode released.\n");
+        return 0;
+    }
+
+9. bmap()
+
+    #include <stdio.h>
+    #define DIRECT_BLOCKS 4
+    #define INDIRECT_BLOCKS 4
+
+    typedef struct Inode{
+        int direct[DIRECT_BLOCKS];
+        int single_indirect[INDIRECT_BLOCKS];
+        int double_indirect[INDIRECT_BLOCKS][INDIRECT_BLOCKS];
+    }Inode;
+
+    int bmap(Inode inode,int logical_block){
+        int first_index;
+        int second_index;
+
+        if(logical_block<DIRECT_BLOCKS)
+            return inode.direct[logical_block];
+
+        logical_block-=DIRECT_BLOCKS;
+
+        if(logical_block<INDIRECT_BLOCKS)
+            return inode.single_indirect[logical_block];
+
+        logical_block-=INDIRECT_BLOCKS;
+
+        if(logical_block<INDIRECT_BLOCKS*INDIRECT_BLOCKS){
+            first_index=logical_block/INDIRECT_BLOCKS;
+            second_index=logical_block%INDIRECT_BLOCKS;
+            return inode.double_indirect[first_index][second_index];
+        }
+
+        return -1;
+    }
+
+    int main(){
+        Inode inode;
+        int i,j,logical_block,physical_block;
+
+        for(i=0;i<DIRECT_BLOCKS;i++)
+            inode.direct[i]=10+i;
+
+        for(i=0;i<INDIRECT_BLOCKS;i++)
+            inode.single_indirect[i]=20+i;
+
+        for(i=0;i<INDIRECT_BLOCKS;i++)
+            for(j=0;j<INDIRECT_BLOCKS;j++)
+                inode.double_indirect[i][j]=30+i*INDIRECT_BLOCKS+j;
+
+        printf("Enter logical block number: ");
+        scanf("%d",&logical_block);
+        physical_block=bmap(inode,logical_block);
+        printf("Physical block = %d\n",physical_block);
+        return 0;
+    }
+---------------------------------------------------------------------------------------------------
