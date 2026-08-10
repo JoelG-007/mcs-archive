@@ -1,0 +1,657 @@
+==================== Create a database named Movie ==================== 
+use Movie
+
+==================== Create the two collections: ====================
+db.createCollection("Film")
+db.createCollection("Actor")
+
+==================== Check: ====================
+show collections
+
+QUERIES
+1. ==================== Insert at least 10 documents into Film ====================
+db.Film.insertMany([
+    {
+        filmId: 1,
+        title: "Inception",
+        year: 2010,
+        genre: ["Sci-Fi", "Thriller", "Action"],
+        actors: [
+            { firstName: "Leonardo", lastName: "DiCaprio" },
+            { firstName: "Joseph", lastName: "Gordon-Levitt" },
+            { firstName: "Tom", lastName: "Hardy" }
+        ],
+        directors: [
+            { firstName: "Christopher", lastName: "Nolan" }
+        ],
+        releaseDetails: [
+            {
+                place: "Los Angeles",
+                date: ISODate("2010-07-16"),
+                rating: 8.8
+            }
+        ]
+    },
+
+    {
+        filmId: 2,
+        title: "Interstellar",
+        year: 2014,
+        genre: ["Sci-Fi", "Drama", "Adventure"],
+        actors: [
+            { firstName: "Matthew", lastName: "McConaughey" },
+            { firstName: "Anne", lastName: "Hathaway" },
+            { firstName: "Jessica", lastName: "Chastain" }
+        ],
+        directors: [
+            { firstName: "Christopher", lastName: "Nolan" }
+        ],
+        releaseDetails: [
+            {
+                place: "Los Angeles",
+                date: ISODate("2014-10-26"),
+                rating: 8.7
+            },
+            {
+                place: "London",
+                date: ISODate("2014-11-07"),
+                rating: 8.7
+            }
+        ]
+    },
+
+    {
+        filmId: 3,
+        title: "The Prestige",
+        year: 2006,
+        genre: ["Mystery", "Drama", "Thriller"],
+        actors: [
+            { firstName: "Christian", lastName: "Bale" },
+            { firstName: "Hugh", lastName: "Jackman" },
+            { firstName: "Scarlett", lastName: "Johansson" }
+        ],
+        directors: [
+            { firstName: "Christopher", lastName: "Nolan" }
+        ],
+        releaseDetails: [
+            {
+                place: "London",
+                date: ISODate("2006-10-20"),
+                rating: 8.5
+            }
+        ]
+    },
+
+    {
+        filmId: 4,
+        title: "The Martian",
+        year: 2015,
+        genre: ["Sci-Fi", "Adventure", "Drama"],
+        actors: [
+            { firstName: "Matt", lastName: "Damon" },
+            { firstName: "Jessica", lastName: "Chastain" },
+            { firstName: "Jeff", lastName: "Daniels" }
+        ],
+        directors: [
+            { firstName: "Ridley", lastName: "Scott" }
+        ],
+        releaseDetails: [
+            {
+                place: "Los Angeles",
+                date: ISODate("2015-09-30"),
+                rating: 8.0
+            }
+        ]
+    },
+
+    {
+        filmId: 5,
+        title: "Shutter Island",
+        year: 2010,
+        genre: ["Mystery", "Thriller", "Drama"],
+        actors: [
+            { firstName: "Leonardo", lastName: "DiCaprio" },
+            { firstName: "Mark", lastName: "Ruffalo" },
+            { firstName: "Ben", lastName: "Kingsley" }
+        ],
+        directors: [
+            { firstName: "Martin", lastName: "Scorsese" }
+        ],
+        releaseDetails: [
+            {
+                place: "New York",
+                date: ISODate("2010-02-19"),
+                rating: 8.2
+            }
+        ]
+    },
+
+    {
+        filmId: 6,
+        title: "Insidious",
+        year: 2010,
+        genre: ["Horror", "Supernatural", "Thriller"],
+        actors: [
+            { firstName: "Patrick", lastName: "Wilson" },
+            { firstName: "Rose", lastName: "Byrne" },
+            { firstName: "Lin", lastName: "Shaye" }
+        ],
+        directors: [
+            { firstName: "James", lastName: "Wan" }
+        ],
+        releaseDetails: [
+            {
+                place: "Los Angeles",
+                date: ISODate("2010-04-01"),
+                rating: 6.8
+            }
+        ]
+    },
+
+    {
+        filmId: 7,
+        title: "The Conjuring",
+        year: 2013,
+        genre: ["Horror", "Supernatural", "Mystery"],
+        actors: [
+            { firstName: "Patrick", lastName: "Wilson" },
+            { firstName: "Vera", lastName: "Farmiga" },
+            { firstName: "Lili", lastName: "Taylor" }
+        ],
+        directors: [
+            { firstName: "James", lastName: "Wan" }
+        ],
+        releaseDetails: [
+            {
+                place: "Los Angeles",
+                date: ISODate("2013-07-19"),
+                rating: 7.5
+            }
+        ]
+    },
+
+    {
+        filmId: 8,
+        title: "Cars",
+        year: 2006,
+        genre: ["Animation", "Comedy", "Adventure"],
+        actors: [
+            { firstName: "Owen", lastName: "Wilson" },
+            { firstName: "Paul", lastName: "Newman" },
+            { firstName: "Bonnie", lastName: "Hunt" }
+        ],
+        directors: [
+            { firstName: "John", lastName: "Lasseter" }
+        ],
+        releaseDetails: [
+            {
+                place: "Los Angeles",
+                date: ISODate("2006-06-09"),
+                rating: 7.2
+            }
+        ]
+    },
+
+    {
+        filmId: 9,
+        title: "Arrival",
+        year: 2016,
+        genre: ["Sci-Fi", "Drama", "Mystery"],
+        actors: [
+            { firstName: "Amy", lastName: "Adams" },
+            { firstName: "Jeremy", lastName: "Renner" },
+            { firstName: "Forest", lastName: "Whitaker" }
+        ],
+        directors: [
+            { firstName: "Denis", lastName: "Villeneuve" }
+        ],
+        releaseDetails: [
+            {
+                place: "New York",
+                date: ISODate("2016-11-11"),
+                rating: 8.0
+            }
+        ]
+    },
+
+    {
+        filmId: 10,
+        title: "Tenet",
+        year: 2020,
+        genre: ["Sci-Fi", "Action", "Thriller"],
+        actors: [
+            { firstName: "John", lastName: "David Washington" },
+            { firstName: "Robert", lastName: "Pattinson" },
+            { firstName: "Elizabeth", lastName: "Debicki" }
+        ],
+        directors: [
+            { firstName: "Christopher", lastName: "Nolan" }
+        ],
+        releaseDetails: [
+            {
+                place: "London",
+                date: ISODate("2020-08-26"),
+                rating: 7.3
+            }
+        ]
+    },
+    {
+        filmId: 11,
+        title: "Dil To Pagal Hai",
+        year: 1997,
+        genre: ["Romance", "Musical", "Drama"],
+        actors: [
+            { firstName: "Shah Rukh", lastName: "Khan" },
+            { firstName: "Madhuri", lastName: "Dixit" },
+            { firstName: "Karisma", lastName: "Kapoor" }
+        ],
+        directors: [
+            { firstName: "Yash", lastName: "Chopra" }
+        ],
+        releaseDetails: [
+            {
+                place: "Mumbai",
+                date: ISODate("1997-10-30"),
+                rating: 7.0
+            }
+        ]
+    },
+
+    {
+        filmId: 12,
+        title: "Devdas",
+        year: 2002,
+        genre: ["Romance", "Drama", "Musical"],
+        actors: [
+            { firstName: "Shah Rukh", lastName: "Khan" },
+            { firstName: "Madhuri", lastName: "Dixit" },
+            { firstName: "Aishwarya", lastName: "Rai" }
+        ],
+        directors: [
+            { firstName: "Sanjay Leela", lastName: "Bhansali" }
+        ],
+        releaseDetails: [
+            {
+                place: "Mumbai",
+                date: ISODate("2002-07-12"),
+                rating: 7.5
+            }
+        ]
+    }
+])
+
+2. ==================== Insert at least 10 actors ====================
+db.Actor.insertMany([
+    {
+        actorId: 1,
+        firstName: "Leonardo",
+        lastName: "DiCaprio",
+        address: {
+            street: "Hollywood Boulevard",
+            city: "Los Angeles",
+            state: "California",
+            country: "USA",
+            pinCode: "90028"
+        },
+        contactDetails: {
+            emailId: "leonardo@bigpond.com",
+            phoneNo: "9876543210"
+        },
+        age: 51
+    },
+
+    {
+        actorId: 2,
+        firstName: "Joseph",
+        lastName: "Gordon-Levitt",
+        address: {
+            street: "Sunset Boulevard",
+            city: "Los Angeles",
+            state: "California",
+            country: "USA",
+            pinCode: "90069"
+        },
+        contactDetails: {
+            emailId: "joseph@sky.com",
+            phoneNo: "9876543211"
+        },
+        age: 45
+    },
+
+    {
+        actorId: 3,
+        firstName: "Tom",
+        lastName: "Hardy",
+        address: {
+            street: "Baker Street",
+            city: "London",
+            state: "England",
+            country: "UK",
+            pinCode: "NW1"
+        },
+        contactDetails: {
+            emailId: "tom@rediffmail.com",
+            phoneNo: "9876543212"
+        },
+        age: 48
+    },
+
+    {
+        actorId: 4,
+        firstName: "Matthew",
+        lastName: "McConaughey",
+        address: {
+            street: "Austin Road",
+            city: "Austin",
+            state: "Texas",
+            country: "USA",
+            pinCode: "78701"
+        },
+        contactDetails: {
+            emailId: "matthew@yandex.com",
+            phoneNo: "9876543213"
+        },
+        age: 56
+    },
+
+    {
+        actorId: 5,
+        firstName: "Anne",
+        lastName: "Hathaway",
+        address: {
+            street: "Broadway",
+            city: "New York",
+            state: "New York",
+            country: "USA",
+            pinCode: "10001"
+        },
+        contactDetails: {
+            emailId: "anne@tuta.com",
+            phoneNo: "9876543214"
+        },
+        age: 43
+    },
+
+    {
+        actorId: 6,
+        firstName: "Christian",
+        lastName: "Bale",
+        address: {
+            street: "Oxford Street",
+            city: "London",
+            state: "England",
+            country: "UK",
+            pinCode: "W1"
+        },
+        contactDetails: {
+            emailId: "christian@protonmail.com",
+            phoneNo: "9876543215"
+        },
+        age: 52
+    },
+
+    {
+        actorId: 7,
+        firstName: "Hugh",
+        lastName: "Jackman",
+        address: {
+            street: "George Street",
+            city: "Sydney",
+            state: "New South Wales",
+            country: "Australia",
+            pinCode: "2000"
+        },
+        contactDetails: {
+            emailId: "hugh@aol.com",
+            phoneNo: "9876543216"
+        },
+        age: 57
+    },
+
+    {
+        actorId: 8,
+        firstName: "Matt",
+        lastName: "Damon",
+        address: {
+            street: "Beacon Street",
+            city: "Boston",
+            state: "Massachusetts",
+            country: "USA",
+            pinCode: "02116"
+        },
+        contactDetails: {
+            emailId: "matt@icloud.com",
+            phoneNo: "9876543217"
+        },
+        age: 55
+    },
+
+    {
+        actorId: 9,
+        firstName: "Patrick",
+        lastName: "Wilson",
+        address: {
+            street: "Broadway",
+            city: "Norwalk",
+            state: "Connecticut",
+            country: "USA",
+            pinCode: "06850"
+        },
+        contactDetails: {
+            emailId: "patrick@outlook.com",
+            phoneNo: "9876543218"
+        },
+        age: 53
+    },
+
+    {
+        actorId: 10,
+        firstName: "Vera",
+        lastName: "Farmiga",
+        address: {
+            street: "Main Street",
+            city: "New York",
+            state: "New York",
+            country: "USA",
+            pinCode: "10001"
+        },
+        contactDetails: {
+            emailId: "vera@hotmail.com",
+            phoneNo: "9876543219"
+        },
+        age: 53
+    }
+    {
+        actorId: 11,
+        firstName: "Shah Rukh",
+        lastName: "Khan",
+        address: {
+            street: "Mannat Road",
+            city: "Mumbai",
+            state: "Maharashtra",
+            country: "India",
+            pinCode: "400050"
+        },
+        contactDetails: {
+            emailId: "srk@gmail.com",
+            phoneNo: "9876543210"
+        },
+        age: 60
+    },
+
+    {
+        actorId: 12,
+        firstName: "Madhuri",
+        lastName: "Dixit",
+        address: {
+            street: "Juhu Road",
+            city: "Mumbai",
+            state: "Maharashtra",
+            country: "India",
+            pinCode: "400049"
+        },
+        contactDetails: {
+            emailId: "madhuri@gmail.com",
+            phoneNo: "9876543211"
+        },
+        age: 59
+    },
+    {
+        actorId: 13,
+        firstName: "Aishwarya",
+        lastName: "Padukone",
+        address: {
+            street: "Pali Hill",
+            city: "Mumbai",
+            state: "Maharashtra",
+            country: "India",
+            pinCode: "400050"
+        },
+        contactDetails: {
+            emailId: "aishwarya@gmail.com",
+            phoneNo: "9876543216"
+        },
+        age: 40
+    }
+])
+
+3. ==================== Display all documents ====================
+== Film
+db.Film.find().pretty()
+
+== Actor
+db.Actor.find().pretty()
+
+4. ==================== Add a value to the rating of the film whose title starts with T ====================
+db.Film.updateOne({ title: "Tenet" }, { $set: { "releaseDetails.0.rating": 8.0 }})
+
+OR 
+
+db.Film.updateOne(
+    { title: /^T/ },
+    {
+        $set: { "releaseDetails.0.rating": 8.0 }
+    }
+)
+
+5. ==================== Add a new actor and a film ====================
+In Actor Collection 
+
+db.Actor.insertOne({
+    actorId: 11,
+    firstName: "Cillian",
+    lastName: "Murphy",
+    address: {
+        street: "Main Street",
+        city: "Cork",
+        state: "Munster",
+        country: "Ireland",
+        pinCode: "T12"
+    },
+    contactDetails: {
+        emailId: "cillian@yahoo.com",
+        phoneNo: "9876543220"
+    },
+    age: 50
+})
+
+In Film Collection
+
+db.Film.insertOne({
+    filmId: 11,
+    title: "Oppenheimer",
+    year: 2023,
+    genre: ["Biography", "Drama", "History"],
+    actors: [
+        {
+            firstName: "Cillian",
+            lastName: "Murphy"
+        },
+        {
+            firstName: "Emily",
+            lastName: "Blunt"
+        }
+    ],
+    directors: [
+        {
+            firstName: "Christopher",
+            lastName: "Nolan"
+        }
+    ],
+    releaseDetails: [
+        {
+            place: "New York",
+            date: ISODate("2023-07-21"),
+            rating: 8.6
+        }
+    ]
+})
+
+6. ==================== Delete a film ====================
+db.Film.deleteOne({ title: "Oppenheimer" })
+
+Verify - 
+db.Film.find({ title: "Oppenheimer" })
+
+7. ==================== Delete an actor ====================
+db.Actor.deleteOne({
+    firstName: "Cillian",
+    lastName: "Murphy"
+})
+
+8. ==================== Delete all actors older than a particular age ====================
+db.Actor.deleteMany({
+    age: { $gt: 55 }
+})
+
+9. ==================== Update actor address where Actor ID is given ====================
+db.Actor.updateOne(
+    { actorId: 1 },
+    {
+        $set: {
+            "address.street": "Sunset Boulevard",
+            "address.city": "Los Angeles",
+            "address.state": "California",
+            "address.country": "USA",
+            "address.pinCode": "90069"
+        }
+    }
+)
+
+Check - 
+db.Actor.findOne({ actorId: 1 }).pretty()
+
+10. ==================== Update the genre of a film directed by a particular director ====================
+db.Film.updateOne(
+    {
+        directors: {
+            $elemMatch: {
+                firstName: "Christopher",
+                lastName: "Nolan"
+            }
+        }
+    },
+    {
+        $addToSet: {
+            genre: "Mystery"
+        }
+    }
+) 
+
+OR 
+
+db.Film.updateOne(
+    {
+        directors: {
+            $elemMatch: {
+                firstName: "Christopher",
+                lastName: "Nolan"
+            }
+        }
+    },
+    {
+        $set: {
+            genre: ["Sci-Fi", "Mystery"]
+        }
+    }
+)
