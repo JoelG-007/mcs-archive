@@ -1,0 +1,401 @@
+==================== Create a database named Company ====================
+use Company
+
+==================== Create the two collections ====================
+db.createCollection("Employee")
+db.createCollection("Transaction")
+
+==================== Check ====================
+show collections
+
+QUERIES
+
+==================== Insert at least 5 documents into Employee ====================
+
+db.Employee.insertMany([
+{
+    employeeId: 101,
+    firstName: "Joel",
+    lastName: "Guedes",
+    email: "joel@gmail.com",
+    phoneNo: "9876543210",
+    address: {
+        houseNo: "1",
+        street: "Farm Road",
+        city: "Pelican Town",
+        state: "Ferngill Republic",
+        country: "Ferngill",
+        pinCode: "100001"
+    },
+    salary: 50000,
+    designation: "Developer",
+    experience: 3,
+    dateOfJoining: ISODate("2023-06-15"),
+    birthDate: ISODate("2002-04-06")
+},
+
+{
+    employeeId: 102,
+    firstName: "Abigail",
+    lastName: "Pierre",
+    email: "abigail@gmail.com",
+    phoneNo: "9876543211",
+    address: {
+        houseNo: "1",
+        street: "Pierre's General Store",
+        city: "Pelican Town",
+        state: "Ferngill Republic",
+        country: "Ferngill",
+        pinCode: "100002"
+    },
+    salary: 42000,
+    designation: "Supervisor",
+    experience: 4,
+    dateOfJoining: ISODate("2022-03-10"),
+    birthDate: ISODate("1999-09-13")
+},
+
+{
+    employeeId: 103,
+    firstName: "Emily",
+    lastName: "Taylor",
+    email: "emily@gmail.com",
+    phoneNo: "9876543212",
+    address: {
+        houseNo: "2",
+        street: "Willow Lane",
+        city: "Pelican Town",
+        state: "Ferngill Republic",
+        country: "Ferngill",
+        pinCode: "100003"
+    },
+    salary: 45000,
+    designation: "Accountant",
+    experience: 5,
+    dateOfJoining: ISODate("2021-08-20"),
+    birthDate: ISODate("1998-03-27")
+},
+
+{
+    employeeId: 104,
+    firstName: "Haley",
+    lastName: "Jones",
+    email: "haley@gmail.com",
+    phoneNo: "9876543213",
+    address: {
+        houseNo: "2",
+        street: "Willow Lane",
+        city: "Pelican Town",
+        state: "Ferngill Republic",
+        country: "Ferngill",
+        pinCode: "100004"
+    },
+    salary: 39000,
+    designation: "HR",
+    experience: 2,
+    dateOfJoining: ISODate("2024-01-05"),
+    birthDate: ISODate("2001-05-14")
+},
+
+{
+    employeeId: 105,
+    firstName: "Leah",
+    lastName: "Wood",
+    email: "leah@gmail.com",
+    phoneNo: "9876543214",
+    address: {
+        houseNo: "1",
+        street: "Cindersap Forest",
+        city: "Pelican Town",
+        state: "Ferngill Republic",
+        country: "Ferngill",
+        pinCode: "100005"
+    },
+    salary: 47000,
+    designation: "Supervisor",
+    experience: 6,
+    dateOfJoining: ISODate("2020-11-18"),
+    birthDate: ISODate("1997-07-23")
+}
+])
+
+2. ==================== Insert at least 10 documents into Transaction ====================
+
+db.Transaction.insertMany([
+{
+    transactionId: 201,
+    transactionDate: ISODate("2024-01-10"),
+    name: "Joel",
+    transactionDetails: {
+        itemId: 1,
+        itemName: "Laptop",
+        quantity: 1,
+        price: 55000
+    },
+    payment: {
+        type: "Debit",
+        totalAmount: 55000,
+        paymentSuccessful: true
+    },
+    remark: ""
+},
+
+{
+    transactionId: 202,
+    transactionDate: ISODate("2024-01-11"),
+    name: "Abigail",
+    transactionDetails: {
+        itemId: 2,
+        itemName: "Keyboard",
+        quantity: 2,
+        price: 1500
+    },
+    payment: {
+        type: "Credit",
+        totalAmount: 3000,
+        paymentSuccessful: true
+    },
+    remark: ""
+},
+
+{
+    transactionId: 203,
+    transactionDate: ISODate("2024-01-12"),
+    name: "Emily",
+    transactionDetails: {
+        itemId: 3,
+        itemName: "Mouse",
+        quantity: 3,
+        price: 700
+    },
+    payment: {
+        type: "Cash",
+        totalAmount: 2100,
+        paymentSuccessful: true
+    },
+    remark: ""
+},
+
+{
+    transactionId: 204,
+    transactionDate: ISODate("2024-01-13"),
+    name: "Haley",
+    transactionDetails: {
+        itemId: 4,
+        itemName: "Monitor",
+        quantity: 1,
+        price: 12000
+    },
+    payment: {
+        type: "Debit",
+        totalAmount: 12000,
+        paymentSuccessful: true
+    },
+    remark: ""
+},
+
+{
+    transactionId: 205,
+    transactionDate: ISODate("2024-01-14"),
+    name: "Leah",
+    transactionDetails: {
+        itemId: 5,
+        itemName: "Printer",
+        quantity: 1,
+        price: 8000
+    },
+    payment: {
+        type: "Cash",
+        totalAmount: 8000,
+        paymentSuccessful: true
+    },
+    remark: ""
+},
+
+{
+    transactionId: 206,
+    transactionDate: ISODate("2024-01-15"),
+    name: "Joel",
+    transactionDetails: {
+        itemId: 6,
+        itemName: "SSD",
+        quantity: 2,
+        price: 4500
+    },
+    payment: {
+        type: "Credit",
+        totalAmount: 9000,
+        paymentSuccessful: true
+    },
+    remark: ""
+},
+
+{
+    transactionId: 207,
+    transactionDate: ISODate("2024-01-16"),
+    name: "Emily",
+    transactionDetails: {
+        itemId: 7,
+        itemName: "RAM",
+        quantity: 2,
+        price: 3500
+    },
+    payment: {
+        type: "Debit",
+        totalAmount: 7000,
+        paymentSuccessful: true
+    },
+    remark: ""
+},
+
+{
+    transactionId: 208,
+    transactionDate: ISODate("2024-01-17"),
+    name: "Abigail",
+    transactionDetails: {
+        itemId: 8,
+        itemName: "Speaker",
+        quantity: 1,
+        price: 2500
+    },
+    payment: {
+        type: "Cash",
+        totalAmount: 2500,
+        paymentSuccessful: true
+    },
+    remark: ""
+},
+
+{
+    transactionId: 209,
+    transactionDate: ISODate("2024-01-18"),
+    name: "Haley",
+    transactionDetails: {
+        itemId: 9,
+        itemName: "Webcam",
+        quantity: 1,
+        price: 4000
+    },
+    payment: {
+        type: "Debit",
+        totalAmount: 4000,
+        paymentSuccessful: true
+    },
+    remark: ""
+},
+
+{
+    transactionId: 210,
+    transactionDate: ISODate("2024-01-19"),
+    name: "Leah",
+    transactionDetails: {
+        itemId: 10,
+        itemName: "Headphones",
+        quantity: 1,
+        price: 3500
+    },
+    payment: {
+        type: "Credit",
+        totalAmount: 3500,
+        paymentSuccessful: true
+    },
+    remark: ""
+}
+])
+
+3. ==================== Display all documents ====================
+
+== Employee
+db.Employee.find().pretty()
+
+== Transaction
+db.Transaction.find().pretty()
+
+4. ==================== Update salary of all employees by Rs. 4000 ====================
+
+db.Employee.updateMany(
+    {},
+    {
+        $inc: { salary: 4000 }
+    }
+)
+
+OR
+
+db.Employee.updateMany(
+    {},
+    [
+        {
+            $set: {
+                salary: { $add: ["$salary", 4000] }
+            }
+        }
+    ]
+)
+
+5. ==================== Update remark for Transaction ID 201 ====================
+
+db.Transaction.updateOne(
+    { transactionId: 201 },
+    {
+        $set: {
+            remark: "Payment Verified"
+        }
+    }
+)
+
+6. ==================== Update designation of " " from Supervisor to Manager ====================
+
+db.Employee.updateOne(
+    {
+        firstName: " ",
+        designation: "Supervisor"
+    },
+    {
+        $set: {
+            designation: "Manager"
+        }
+    }
+)
+
+7. ==================== Update designation of Employee ID 105 ====================
+
+db.Employee.updateOne(
+    { employeeId: 105 },
+    {
+        $set: {
+            designation: "Senior Manager"
+        }
+    }
+)
+
+8. ==================== Change address of Employee ID 103 ====================
+
+db.Employee.updateOne(
+    { employeeId: 103 },
+    {
+        $set: {
+            address: {
+                houseNo: "1",
+                street: "Mayor's Manor",
+                city: "Pelican Town",
+                state: "Ferngill Republic",
+                country: "Ferngill",
+                pinCode: "100010"
+            }
+        }
+    }
+)
+
+9. ==================== Delete transaction made by Joel on the given date ====================
+
+db.Transaction.deleteOne({
+    name: "Joel",
+    transactionDate: ISODate("2024-01-10")
+})
+
+10. ==================== Delete all employees whose first name starts with K ====================
+
+db.Employee.deleteMany({
+    firstName: /^K/
+})
