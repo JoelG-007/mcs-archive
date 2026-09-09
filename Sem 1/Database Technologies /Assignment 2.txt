@@ -10,7 +10,7 @@ show collections
 
 QUERIES
 
-==================== Insert at least 5 documents into Employee ====================
+1. ==================== Insert at least 5 documents into Employee ====================
 
 db.Employee.insertMany([
 {
