@@ -1,0 +1,916 @@
+Changes Made to Tailor the Database for Assignment Queries:
+1. Library Database
+    - Added Read relationships for readers and books.
+    - Added IssuedBy relationships required for the issue-count query.
+    - Added a Pune-based publisher for the publisher query.
+
+2. Song Database
+    - Added song authors, artists, recording companies, and studios
+      with the required relationships for the assignment queries.
+
+3. Employee Database
+    - Added employee-department relationships.
+    - Added employee-skillset relationships.
+    - Added project-department control relationships.
+
+4. Movie Database
+    - Added Reviewer nodes.
+    - Added FOLLOWS and REVIEWED relationships.
+    - Added ACTED_IN relationships required for actor/movie queries.
+    - Added PRODUCED relationships required for the producer query.
+
+5. Social Network Database
+    - Added John as a Person.
+    - Added birthYear property to persons for the same-birth-year query.
+    - Added friendships and since properties for John.
+    - Added affiliations for John.
+    - Added a 2015 timeline and messages for the timeline query.
+    - Added the previously missing Person, Affiliation, Timeline, and Message nodes.
+
+1. ==================== Library Database ====================
+
+// -------------------- AUTHORS --------------------
+CREATE 
+(a1:Person:Author {authorId:1, name:"J. R. R.Tolkien", born:1892}), 
+(a2:Person:Author {authorId:2, name:"GeorgeOrwell", born:1903}), 
+(a3:Person:Author {authorId:3, name:"FrankHerbert", born:1920}), 
+(a4:Person:Author {authorId:4, name:"PatrickRothfuss", born:1973}), 
+(a5:Person:Author {authorId:5, name:"AndrzejSapkowski", born:1948}),
+
+// -------------------- READERS --------------------
+(r1:Person:Reader {readerId:1, name:"Joel Guedes"}),
+(r2:Person:Reader {readerId:2, name:"Lucas Trowman"}), 
+(r3:Person:Reader {readerId:3, name:"Schweiser Wilsemann"}), 
+(r4:Person:Reader {readerId:4, name:"Frey Blake"}),
+(r5:Person:Reader {readerId:5, name:"Mr. Joshi"}),
+
+// -------------------- REVIEWERS --------------------
+(rv1:Person:Reviewer {reviewerId:1, name:"Daniel Reed"}),
+(rv2:Person:Reviewer {reviewerId:2, name:"Emily Carter"}),
+
+// -------------------- TRANSLATORS --------------------
+(t1:Person:Translator {translatorId:1, name:"David French"}),
+(t2:Person:Translator {translatorId:2, name:"Anna Kowalska"}),
+
+// -------------------- SUPPLIERS --------------------
+(s1:Person:Supplier {supplierId:1, name:"Global Book Distributors"}), 
+(s2:Person:Supplier {supplierId:2, name:"Novel Supply House"}),
+
+// -------------------- PUBLISHERS --------------------
+(p1:Publisher {publisherId:1, name:"Allen & Unwin", city:"London"}), 
+(p2:Publisher {publisherId:2, name:"Secker & Warburg", city:"London"}), 
+(p3:Publisher {publisherId:3, name:"Chilton Books", city:"Philadelphia"}), 
+(p4:Publisher {publisherId:4, name:"DAW Books", city:"New York"}), 
+(p5:Publisher {publisherId:5, name:"SuperNOWA", city:"Warsaw"}),
+(p6:Publisher {publisherId:6, name:"Penguin India", city:"Pune"}),
+
+// -------------------- BOOKS --------------------
+(b1:Book {bookId:101, title:"The Lord of the Rings", tags:["Fantasy","Adventure"], status:"Available", condition:"New", cost:1200, type:"Novel"}),
+(b2:Book {bookId:102, title:"The Hobbit", tags:["Fantasy"], status:"Issued", condition:"Old", cost:800, type:"Novel"}),
+(b3:Book {bookId:103, title:"Nineteen Eighty-Four", tags:["Dystopian","Political"],status:"Available", condition:"New", cost:600, type:"Novel"}),
+(b4:Book {bookId:104, title:"Dune",tags:["Science Fiction"], status:"Issued", condition:"New", cost:950, type:"Novel"}),
+(b5:Book {bookId:105, title:"The Name of the Wind", tags:["Fantasy"],status:"Available", condition:"New", cost:700, type:"Novel"}),
+(b6:Book {bookId:106, title:"The Witcher: Blood of Elves", tags:["Fantasy"], status:"Available", condition:"Old", cost:650, type:"Novel"}),
+
+// -------------------- RELATIONSHIPS --------------------
+
+// WROTE
+(a1)-[:WROTE]->(b1), 
+(a1)-[:WROTE]->(b2), 
+(a2)-[:WROTE]->(b3),
+(a3)-[:WROTE]->(b4), 
+(a4)-[:WROTE]->(b5), 
+(a5)-[:WROTE]->(b6),
+
+// PUBLISHED BY
+(b1)-[:PublishedBy]->(p1), 
+(b2)-[:PublishedBy]->(p1),
+(b3)-[:PublishedBy]->(p2), 
+(b4)-[:PublishedBy]->(p3),
+(b5)-[:PublishedBy]->(p4), 
+(b6)-[:PublishedBy]->(p6),
+
+// SUPPLIED BY
+(s1)-[:Supplies]->(b1), 
+(s1)-[:Supplies]->(b2), 
+(s2)-[:Supplies]->(b3),
+(s2)-[:Supplies]->(b4), 
+(s1)-[:Supplies]->(b5), 
+(s2)-[:Supplies]->(b6),
+
+// ISSUED
+(r1)-[:IssuedBy {issueDate:date("2026-08-01")}]->(b2), 
+(r2)-[:IssuedBy {issueDate:date("2026-08-05")}]->(b4), 
+(r3)-[:IssuedBy {issueDate:date("2026-08-07")}]->(b1),
+(r5)-[:IssuedBy {issueDate:date("2026-08-09")}]->(b2),
+(r5)-[:IssuedBy {issueDate:date("2026-08-12")}]->(b4), 
+
+// RETURNED
+(r1)-[:ReturnedBy {returnDate:date("2026-08-10"), fine:0}]->(b2), 
+(r2)-[:ReturnedBy {returnDate:date("2026-08-18"), fine:50}]->(b4), 
+
+// REVIEWED BY
+(rv1)-[:ReviewedBy {rating:5, remark:"Excellent", reviewDate:date("2026-08-15")}]->(b1),
+(rv2)-[:ReviewedBy {rating:4, remark:"Very Good", reviewDate:date("2026-08-18")}]->(b4), 
+
+// TRANSLATED BY
+(t1)-[:TranslatedBy {language:"English"}]->(b6), 
+(t2)-[:TranslatedBy {language:"Polish"}]->(b5), 
+
+// VOTES
+(r1)-[:Votes {rating:5}]->(b1), 
+(r2)-[:Votes{rating:4}]->(b4), 
+(r3)-[:Votes {rating:5}]->(b2), 
+(r4)-[:Votes {rating:3}]->(b3),
+(r1)-[:Read]->(b2),
+(r2)-[:Read]->(b2),
+(r5)-[:Read]->(b2);
+
+2. ==================== Song Database ====================
+
+// -------------------- ARTISTS --------------------  
+CREATE 
+(ar1:Artist {artistId:1, name:"Tame Impala", country:"Australia"}),
+(ar2:Artist {artistId:2, name:"Arctic Monkeys", country:"England"}),
+(ar3:Artist {artistId:3, name:"Rodrigo Amarante", country:"Brazil"}),
+(ar4:Artist {artistId:4, name:"Little Big", country:"Russia"}),
+(ar5:Artist {artistId:5, name:"The Strokes", country:"USA"}),
+(ar6:Artist {artistId:6, name:"WIM", country:"USA"}),
+(ar7:Artist {artistId:7, name:"Bershy", country:"USA"}),
+(ar8:Artist {artistId:8, name:"Conan Gray", country:"USA"}),
+
+// -------------------- SONG AUTHORS -------------------- 
+(sa1:SongAuthor {authorId:1, name:"Kevin Parker"}),
+(sa2:SongAuthor {authorId:2, name:"Alex Turner"}),
+(sa3:SongAuthor {authorId:3, name:"Rodrigo Amarante"}),
+(sa4:SongAuthor {authorId:4, name:"Ilya Prusikin"}),
+(sa5:SongAuthor {authorId:5, name:"Julian Casablancas"}),
+(sa6:SongAuthor {authorId:6, name:"WIM"}),
+(sa7:SongAuthor {authorId:7, name:"Bershy"}),
+(sa8:SongAuthor {authorId:8, name:"Conan Gray"}),
+
+// -------------------- RECORDING COMPANIES --------------------
+(rc1:RecordingCompany {companyId:1, name:"Universal Music", country:"USA"}),
+(rc2:RecordingCompany {companyId:2, name:"Sony Music", country:"USA"}),
+(rc3:RecordingCompany {companyId:3, name:"Domino Recording Company", country:"UK"}),
+
+// -------------------- RECORDING STUDIOS --------------------
+(rs1:RecordingStudio {studioId:1, name:"Wave House", city:"Perth"}),
+(rs2:RecordingStudio {studioId:2, name:"RAK Studios", city:"London"}),
+(rs3:RecordingStudio {studioId:3, name:"Electric Lady Studios", city:"New York"}),
+
+// -------------------- SONGS --------------------
+(s1:Song {songId:101, title:"Dracula", genre:"Psychedelic Rock", language:"English", duration:"4:31", releaseYear:2025}),
+(s2:Song {songId:102, title:"Loser", genre:"Psychedelic Rock", language:"English", duration:"4:10", releaseYear:2025}),
+(s3:Song {songId:103, title:"Let It Happen", genre:"Psychedelic Rock", language:"English", duration:"7:47", releaseYear:2015}),
+(s4:Song {songId:104, title:"End of Summer", genre:"Psychedelic Rock", language:"English", duration:"5:00", releaseYear:2025}),
+(s5:Song {songId:105, title:"505", genre:"Indie Rock", language:"English", duration:"4:13", releaseYear:2007}),
+(s6:Song {songId:106, title:"I Wanna Be Yours", genre:"Indie Rock", language:"English", duration:"3:04", releaseYear:2013}),
+(s7:Song {songId:107, title:"Tuyo",genre:"Latin", language:"Spanish", duration:"2:28", releaseYear:2015}),
+(s8:Song {songId:108, title:"Hypnodancer", genre:"Rave", language:"English", duration:"3:09", releaseYear:2020}),
+(s9:Song {songId:109, title:"The Adults Are Talking", genre:"Alternative Rock", language:"English",duration:"5:09", releaseYear:2020}),
+(s10:Song {songId:110, title:"Mr. Feel Good", genre:"Alternative", language:"English",duration:"3:30", releaseYear:2023}),
+(s11:Song {songId:111, title:"Weirdo", genre:"Alternative", language:"English",duration:"3:20", releaseYear:2023}),
+(s12:Song {songId:112, title:"Radio", genre:"Alternative", language:"English",duration:"3:45", releaseYear:2024}),
+(s13:Song {songId:113, title:"Maniac", genre:"Pop", language:"English", duration:"3:05", releaseYear:2019}),
+
+// -------------------- RELATIONSHIPS --------------------
+
+// Performs
+(ar1)-[:Performs]->(s1),
+(ar1)-[:Performs]->(s2),
+(ar1)-[:Performs]->(s3),
+(ar1)-[:Performs]->(s4),
+(ar2)-[:Performs]->(s5),
+(ar2)-[:Performs]->(s6),
+(ar3)-[:Performs]->(s7),
+(ar4)-[:Performs]->(s8),
+(ar5)-[:Performs]->(s9),
+(ar6)-[:Performs]->(s10),
+(ar6)-[:Performs]->(s11),
+(ar7)-[:Performs]->(s12),
+(ar8)-[:Performs]->(s13),
+
+// Written By
+(s1)-[:WrittenBy]->(sa1),
+(s2)-[:WrittenBy]->(sa1),
+(s3)-[:WrittenBy]->(sa1),
+(s4)-[:WrittenBy]->(sa1),
+(s5)-[:WrittenBy]->(sa2),
+(s6)-[:WrittenBy]->(sa2),
+(s7)-[:WrittenBy]->(sa3),
+(s8)-[:WrittenBy]->(sa4),
+(s9)-[:WrittenBy]->(sa5),
+(s10)-[:WrittenBy]->(sa6),
+(s11)-[:WrittenBy]->(sa6),
+(s12)-[:WrittenBy]->(sa7),
+(s13)-[:WrittenBy]->(sa8),
+
+// Recorded In
+(s1)-[:RecordedIn]->(rs1),
+(s2)-[:RecordedIn]->(rs1),
+(s3)-[:RecordedIn]->(rs1),
+(s4)-[:RecordedIn]->(rs1),
+(s5)-[:RecordedIn]->(rs2),
+(s6)-[:RecordedIn]->(rs2),
+(s7)-[:RecordedIn]->(rs3),
+(s8)-[:RecordedIn]->(rs3),
+(s9)-[:RecordedIn]->(rs3),
+(s10)-[:RecordedIn]->(rs3),
+(s11)-[:RecordedIn]->(rs3),
+(s12)-[:RecordedIn]->(rs3),
+(s13)-[:RecordedIn]->(rs3),
+
+// Managed By
+(rs1)-[:ManagedBy]->(rc1),
+(rs2)-[:ManagedBy]->(rc3),
+(rs3)-[:ManagedBy]->(rc2),
+
+// Finances
+(rc1)-[:Finances]->(s1),
+(rc1)-[:Finances]->(s2),
+(rc1)-[:Finances]->(s3),
+(rc1)-[:Finances]->(s4),
+(rc3)-[:Finances]->(s5),
+(rc3)-[:Finances]->(s6),
+(rc2)-[:Finances]->(s7),
+(rc2)-[:Finances]->(s8),
+(rc2)-[:Finances]->(s9),
+(rc2)-[:Finances]->(s10),
+(rc2)-[:Finances]->(s11),
+(rc2)-[:Finances]->(s12),
+(rc2)-[:Finances]->(s13);
+
+3. ==================== Employee Database ====================
+
+// -------------------- EMPLOYEES --------------------
+CREATE
+(e1:Employee {
+    employeeId:1,
+    name:"Joel Guedes",
+    designation:"Software Engineer",
+    experience:2,
+    salary:850000
+}),
+(e2:Employee {
+    employeeId:2,
+    name:"Kayden Break",
+    designation:"Data Analyst",
+    experience:3,
+    salary:750000
+}),
+(e3:Employee {
+    employeeId:3,
+    name:"Gestella Patrick",
+    designation:"Backend Developer",
+    experience:4,
+    salary:900000
+}),
+(e4:Employee {
+    employeeId:4,
+    name:"Schnauder Roist",
+    designation:"Project Manager",
+    experience:6,
+    salary:1500000
+}),
+(e5:Employee {
+    employeeId:5,
+    name:"Vatore  Noil",
+    designation:"AI Engineer",
+    experience:5,
+    salary:1200000
+}),
+
+// -------------------- DEPARTMENTS --------------------
+(d1:Department {
+    departmentId:1,
+    name:"Software Development",
+    location:"Pune"
+}),
+(d2:Department {
+    departmentId:2,
+    name:"Artificial Intelligence",
+    location:"Bangalore"
+}),
+(d3:Department {
+    departmentId:3,
+    name:"Data Analytics",
+    location:"Mumbai"
+}),
+
+// -------------------- SKILLSETS --------------------
+(sk1:Skillset {
+    skillId:1,
+    skill:"Python"
+}),
+(sk2:Skillset {
+    skillId:2,
+    skill:"Java"
+}),
+(sk3:Skillset {
+    skillId:3,
+    skill:"MongoDB"
+}),
+(sk4:Skillset {
+    skillId:4,
+    skill:"Neo4j"
+}),
+(sk5:Skillset {
+    skillId:5,
+    skill:"Machine Learning"
+}),
+(sk6:Skillset {
+    skillId:6,
+    skill:"Docker"
+}),
+(sk7:Skillset {
+    skillId:7,
+    skill:"AWS"
+}),
+
+// -------------------- PROJECTS --------------------
+(p1:Project {
+    projectId:101,
+    name:"Aarogya",
+    status:"Completed",
+    budget:500000
+}),
+(p2:Project {
+    projectId:102,
+    name:"Diaita",
+    status:"Completed",
+    budget:700000
+}),
+(p3:Project {
+    projectId:103,
+    name:"InsightVault",
+    status:"In Progress",
+    budget:900000
+}),
+(p4:Project {
+    projectId:104,
+    name:"Sophrosyne",
+    status:"Planning",
+    budget:400000
+}),
+
+// -------------------- RELATIONSHIPS --------------------
+
+// Works_in
+(e1)-[:Works_in]->(d1),
+(e2)-[:Works_in]->(d3),
+(e3)-[:Works_in]->(d1),
+(e4)-[:Works_in]->(d1),
+(e5)-[:Works_in]->(d2),
+
+// Has_acquired
+(e1)-[:Has_acquired {year:2025}]->(sk1),
+(e1)-[:Has_acquired {year:2025}]->(sk3),
+(e1)-[:Has_acquired {year:2026}]->(sk4),
+(e2)-[:Has_acquired]->(sk1),
+(e2)-[:Has_acquired]->(sk5),
+(e3)-[:Has_acquired]->(sk2),
+(e3)-[:Has_acquired]->(sk6),
+(e4)-[:Has_acquired]->(sk7),
+(e4)-[:Has_acquired]->(sk2),
+(e5)-[:Has_acquired]->(sk5),
+(e5)-[:Has_acquired]->(sk7),
+
+// Assigned_to
+(e1)-[:Assigned_to {role:"Developer"}]->(p2),
+(e1)-[:Assigned_to {role:"AI Engineer"}]->(p3),
+(e2)-[:Assigned_to {role:"Data Analyst"}]->(p1),
+(e3)-[:Assigned_to {role:"Backend Developer"}]->(p3),
+(e4)-[:Assigned_to {role:"Project Manager"}]->(p1),
+(e4)-[:Assigned_to {role:"Project Manager"}]->(p2),
+(e5)-[:Assigned_to {role:"AI Engineer"}]->(p4),
+
+// Controlled_by
+(p1)-[:Controlled_by]->(d3),
+(p2)-[:Controlled_by]->(d2),
+(p3)-[:Controlled_by]->(d1),
+(p4)-[:Controlled_by]->(d2),
+
+// Project_manager
+(e4)-[:Project_manager]->(p1),
+(e4)-[:Project_manager]->(p2),
+(e5)-[:Project_manager]->(p4);
+
+4. ==================== Movie Database ====================
+
+// -------------------- ACTORS --------------------
+CREATE
+(a1:Actor {
+    actorId:1,
+    name:"Leonardo DiCaprio",
+    nationality:"American",
+    age:50
+}),
+(a2:Actor {
+    actorId:2,
+    name:"Cillian Murphy",
+    nationality:"Irish",
+    age:49
+}),
+(a3:Actor {
+    actorId:3,
+    name:"Margot Robbie",
+    nationality:"Australian",
+    age:35
+}),
+(a4:Actor {
+    actorId:4,
+    name:"Robert Downey Jr.",
+    nationality:"American",
+    age:60
+}),
+(a5:Actor {
+    actorId:5,
+    name:"Tom Holland",
+    nationality:"British",
+    age:29
+}),
+
+// -------------------- MOVIES --------------------
+(m1:Movie {
+    movieId:101,
+    title:"Inception",
+    genre:"Sci-Fi",
+    language:"English",
+    releaseYear:2010,
+    imdbRating:8.8
+}),
+(m2:Movie {
+    movieId:102,
+    title:"Oppenheimer",
+    genre:"Biography",
+    language:"English",
+    releaseYear:2023,
+    imdbRating:8.4
+}),
+(m3:Movie {
+    movieId:103,
+    title:"Barbie",
+    genre:"Comedy",
+    language:"English",
+    releaseYear:2023,
+    imdbRating:6.8
+}),
+(m4:Movie {
+    movieId:104,
+    title:"Spider-Man: No Way Home",
+    genre:"Action",
+    language:"English",
+    releaseYear:2021,
+    imdbRating:8.2
+}),
+(m5:Movie {
+    movieId:105,
+    title:"The Wolf of Wall Street",
+    genre:"Biography",
+    language:"English",
+    releaseYear:2013,
+    imdbRating:8.2
+}),
+
+// -------------------- ROLES --------------------
+(r1:Role {roleId:1, character:"Dom Cobb"}),
+(r2:Role {roleId:2, character:"J. Robert Oppenheimer"}),
+(r3:Role {roleId:3, character:"Barbie"}),
+(r4:Role {roleId:4, character:"Peter Parker"}),
+(r5:Role {roleId:5, character:"Jordan Belfort"}),
+
+// -------------------- DIRECTORS --------------------
+(d1:Director {
+    directorId:1,
+    name:"Christopher Nolan"
+}),
+(d2:Director {
+    directorId:2,
+    name:"Greta Gerwig"
+}),
+(d3:Director {
+    directorId:3,
+    name:"Jon Watts"
+}),
+(d4:Director {
+    directorId:4,
+    name:"Martin Scorsese"
+}),
+
+// -------------------- PRODUCERS --------------------
+(p1:Producer {
+    producerId:1,
+    name:"Emma Thomas"
+}),
+(p2:Producer {
+    producerId:2,
+    name:"David Heyman"
+}),
+(p3:Producer {
+    producerId:3,
+    name:"Kevin Feige"
+}),
+(p4:Producer {
+    producerId:4,
+    name:"Margot Robbie"
+}),
+
+// -------------------- FINANCIERS --------------------
+(f1:Financier {
+    financierId:1,
+    name:"Warner Bros."
+}),
+(f2:Financier {
+    financierId:2,
+    name:"Universal Pictures"
+}),
+(f3:Financier {
+    financierId:3,
+    name:"Sony Pictures"
+}),
+
+// -------------------- REVIEWERS --------------------
+(rw1:Reviewer {
+    reviewerId:1,
+    name:"Daniel Reed"
+}),
+(rw2:Reviewer {
+    reviewerId:2,
+    name:"Emily Carter"
+}),
+
+// -------------------- RELATIONSHIPS --------------------
+
+// ACTED IN
+(a1)-[:ACTED_IN]->(m1),
+(a1)-[:ACTED_IN]->(m5),
+(a1)-[:ACTED_IN]->(m2),
+(a2)-[:ACTED_IN]->(m2),
+(a3)-[:ACTED_IN]->(m3),
+(a4)-[:ACTED_IN]->(m2),
+(a5)-[:ACTED_IN]->(m4),
+
+// PLAYED ROLE
+(a1)-[:PLAYED]->(r1),
+(a1)-[:PLAYED]->(r5),
+(a2)-[:PLAYED]->(r2),
+(a3)-[:PLAYED]->(r3),
+(a5)-[:PLAYED]->(r4),
+
+(r1)-[:ROLE_IN]->(m1),
+(r2)-[:ROLE_IN]->(m2),
+(r3)-[:ROLE_IN]->(m3),
+(r4)-[:ROLE_IN]->(m4),
+(r5)-[:ROLE_IN]->(m5),
+
+// DIRECTED
+(d1)-[:DIRECTED]->(m1),
+(d1)-[:DIRECTED]->(m2),
+(d2)-[:DIRECTED]->(m3),
+(d3)-[:DIRECTED]->(m4),
+(d4)-[:DIRECTED]->(m5),
+
+// PRODUCED
+(p1)-[:PRODUCED]->(m1),
+(p1)-[:PRODUCED]->(m2),
+(p4)-[:PRODUCED]->(m3),
+(p3)-[:PRODUCED]->(m4),
+(p2)-[:PRODUCED]->(m5),
+
+// FINANCED
+(f1)-[:FINANCED {budget:160000000}]->(m1),
+(f2)-[:FINANCED {budget:100000000}]->(m2),
+(f1)-[:FINANCED {budget:145000000}]->(m3),
+(f3)-[:FINANCED {budget:200000000}]->(m4),
+(f1)-[:FINANCED {budget:100000000}]->(m5),
+
+// REVIEWED BY REVIEWERS
+(rw1)-[:FOLLOWS]->(rw2),
+(rw1)-[:REVIEWED]->(m2),
+(rw2)-[:REVIEWED]->(m2);
+
+// 5. ==================== Social Network Database ====================
+
+// -------------------- PERSONS --------------------
+CREATE
+(p1:Person {
+    personId:1,
+    name:"John",
+    age:22,
+    birthYear:2004,
+    city:"New York"
+}),
+(p2:Person {
+    personId:2,
+    name:"Emily Carter",
+    age:21,
+    birthYear:2005,
+    city:"Los Angeles"
+}),
+(p3:Person {
+    personId:3,
+    name:"Ethan Walker",
+    age:23,
+    birthYear:2003,
+    city:"Chicago"
+}),
+(p4:Person {
+    personId:4,
+    name:"Sophia Parker",
+    age:22,
+    birthYear:2004,
+    city:"Boston"
+}),
+(p5:Person {
+    personId:5,
+    name:"Joel Guedes",
+    age:24,
+    birthYear:2002,
+    city:"Seattle"
+}),
+(p6:Person {
+    personId:6,
+    name:"Daniel Brown",
+    age:23,
+    birthYear:2004,
+    city:"San Francisco"
+}),
+
+// -------------------- AFFILIATIONS --------------------
+(a1:Affiliation {
+    affiliationId:1,
+    name:"Harvard University",
+    type:"University"
+}),
+(a2:Affiliation {
+    affiliationId:2,
+    name:"Open Source Community",
+    type:"Organization"
+}),
+(a3:Affiliation {
+    affiliationId:3,
+    name:"Google Developers",
+    type:"Technology"
+}),
+(a4:Affiliation {
+    affiliationId:4,
+    name:"MIT AI Lab",
+    type:"Research"
+}),
+
+// -------------------- GROUPS --------------------
+(g1:Group {
+    groupId:1,
+    name:"AI Developers"
+}),
+(g2:Group {
+    groupId:2,
+    name:"Cyber Security Club"
+}),
+(g3:Group {
+    groupId:3,
+    name:"Movie Lovers"
+}),
+
+// -------------------- STORIES --------------------
+(s1:Story {
+    storyId:1,
+    title:"Won AI Hackathon",
+    category:"Achievement",
+    createdOn:date("2015-08-10")
+}),
+(s2:Story {
+    storyId:2,
+    title:"Built a Social Network App",
+    category:"Technology",
+    createdOn:date("2015-08-15")
+}),
+(s3:Story {
+    storyId:3,
+    title:"Weekend Movie Marathon",
+    category:"Entertainment",
+    createdOn:date("2015-08-20")
+}),
+
+// -------------------- TIMELINES --------------------
+(t1:Timeline {
+    timelineId:1,
+    year:2015
+}),
+(t2:Timeline {
+    timelineId:2,
+    year:2025
+}),
+(t3:Timeline {
+    timelineId:3,
+    year:2015
+}),
+
+// -------------------- MESSAGES --------------------
+(m1:Message {
+    messageId:1,
+    content:"Congratulations on your achievement!",
+    sentOn:date("2015-08-11")
+}),
+(m2:Message {
+    messageId:2,
+    content:"Amazing project, well done!",
+    sentOn:date("2015-08-16")
+}),
+(m3:Message {
+    messageId:3,
+    content:"Let's meet for the movie night.",
+    sentOn:date("2025-08-21")
+}),
+(m4:Message {
+    messageId:4,
+    content:"Hello everyone!",
+    sentOn:date("2015-08-12")
+}),
+(m5:Message {
+    messageId:5,
+    content:"Great to connect with everyone.",
+    sentOn:date("2015-08-18")
+}),
+
+// -------------------- RELATIONSHIPS --------------------
+
+// FRIEND OF
+(p1)-[:Friend_of {since:2022}]->(p2),
+(p1)-[:Friend_of {since:2021}]->(p4),
+(p1)-[:Friend_of {since:2014}]->(p6),
+(p2)-[:Friend_of {since:2021}]->(p3),
+(p3)-[:Friend_of {since:2020}]->(p4),
+(p4)-[:Friend_of {since:2023}]->(p5),
+(p5)-[:Friend_of {since:2024}]->(p1),
+(p6)-[:Friend_of {since:2016}]->(p2),
+
+// AFFILIATED TO
+(p1)-[:Affiliated_to]->(a1),
+(p1)-[:Affiliated_to]->(a3),
+(p2)-[:Affiliated_to]->(a1),
+(p3)-[:Affiliated_to]->(a2),
+(p4)-[:Affiliated_to]->(a2),
+(p5)-[:Affiliated_to]->(a3),
+(p6)-[:Affiliated_to]->(a3),
+(p6)-[:Affiliated_to]->(a4),
+
+// BELONGS TO
+(p1)-[:Belongs_to]->(g1),
+(p2)-[:Belongs_to]->(g1),
+(p3)-[:Belongs_to]->(g2),
+(p4)-[:Belongs_to]->(g3),
+(p5)-[:Belongs_to]->(g1),
+
+// CREATES STORY
+(p1)-[:Creates]->(s1),
+(p2)-[:Creates]->(s2),
+(p3)-[:Creates]->(s3),
+
+// STORY REFERS TO PERSON
+(s1)-[:Refers_to]->(p2),
+(s2)-[:Refers_to]->(p1),
+(s3)-[:Refers_to]->(p4),
+
+// CREATES TIMELINE
+(p1)-[:Creates]->(t1),
+(p2)-[:Creates]->(t2),
+(p6)-[:Creates]->(t3),
+
+// TIMELINE REFERENCES STORY
+(t1)-[:Reference_for]->(s1),
+(t1)-[:Reference_for]->(s2),
+(t2)-[:Reference_for]->(s3),
+(t3)-[:Reference_for]->(s1),
+
+// TIMELINE CONTAINS MESSAGES
+(t1)-[:Contains]->(m1),
+(t1)-[:Contains]->(m2),
+(t2)-[:Contains]->(m3),
+(t3)-[:Contains]->(m4),
+(t3)-[:Contains]->(m5);
+
+-------------------- Testing Queries --------------------
+
+// Visualize 
+MATCH (n) OPTIONAL MATCH (n)-[r]->(m) RETURN n,r,m;
+
+// Properties 
+MATCH (n) RETURN properties(n);
+
+// Labels 
+MATCH (n) RETURN labels(n);
+
+// Relationships 
+MATCH ()-[r]->() RETURN type(r),properties(r);
+
+-------------------- Assignment 5 (Simple) Queries --------------------
+
+-------------------- (1) --------------------
+
+// (a) List all people who have issued the book "The Hobbit"
+MATCH (p:Reader)-[:IssuedBy]->(b:Book {title:"The Hobbit"})
+RETURN p.name AS person;
+
+// (b) Count the number of people who have read "The Hobbit"
+MATCH (p:Reader)-[:Read]->(b:Book {title:"The Hobbit"})
+RETURN count(p) AS numberOfReaders;
+
+// (c) Add property "Number of books issued" for Mr. Joshi and set it as the count
+MATCH (p:Reader {name:"Mr. Joshi"})
+OPTIONAL MATCH (p)-[:IssuedBy]->(b:Book)
+WITH p, count(b) AS issuedCount
+SET p.`Number of books issued` = issuedCount
+RETURN p.name, p.`Number of books issued`;
+
+// (d) List the names of publishers from Pune city
+MATCH (p:Publisher {city:"Pune"})
+RETURN p.name AS publisher;
+
+-------------------- (2) --------------------
+
+// (a) List the names of songs written by "Kevin Parker"
+MATCH (s:Song)-[:WrittenBy]->(a:SongAuthor {name:"Kevin Parker"})
+RETURN s.title AS song;
+
+// (b) List the names of record companies that have financed the song "Dracula"
+MATCH (c:RecordingCompany)-[:Finances]->(s:Song {title:"Dracula"})
+RETURN c.name AS recordCompany;
+
+// (c) List the names of artists performing the song "Dracula"
+MATCH (a:Artist)-[:Performs]->(s:Song {title:"Dracula"})
+RETURN a.name AS artist;
+
+// (d) Name the songs recorded by the studio "Wave House"
+MATCH (s:Song)-[:RecordedIn]->(studio:RecordingStudio {name:"Wave House"})
+RETURN s.title AS song;
+
+-------------------- (3) --------------------
+
+// (a) List the names of employees in the department "Software Development"
+MATCH (e:Employee)-[:Works_in]->(d:Department {name:"Software Development"})
+RETURN e.name AS employee;
+
+// (b) List the projects along with their properties controlled by "Software Development"
+MATCH (p:Project)-[:Controlled_by]->(d:Department {name:"Software Development"})
+RETURN p, properties(p);
+
+// (c) List the departments along with the count of employees in each
+MATCH (d:Department)
+OPTIONAL MATCH (e:Employee)-[:Works_in]->(d)
+RETURN d.name AS department, count(e) AS employeeCount;
+
+// (d) List the skillset for the employee "Joel Guedes"
+MATCH (e:Employee {name:"Joel Guedes"})-[:Has_acquired]->(s:Skillset)
+RETURN s.skill AS skill;
+
+-------------------- (4) --------------------
+
+// (a) Find all actors who have acted in the movie "Oppenheimer"
+MATCH (a:Actor)-[:ACTED_IN]->(m:Movie {title:"Oppenheimer"})
+RETURN a.name AS actor;
+
+// (b) Find reviewer pairs, one following the other and both reviewing the same movie, and return the entire subgraphs
+MATCH (r1:Reviewer)-[f:FOLLOWS]->(r2:Reviewer),
+      (r1)-[rev1:REVIEWED]->(m:Movie)<-[rev2:REVIEWED]-(r2)
+RETURN r1, f, r2, rev1, m, rev2;
+
+// (c) Find all actors that acted in a movie together after 2010 and return actor names and the movie node
+MATCH (a1:Actor)-[:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(a2:Actor)
+WHERE a1 <> a2
+  AND m.releaseYear > 2010
+RETURN DISTINCT a1.name AS actor1,
+                a2.name AS actor2,
+                m;
+
+MATCH (a1:Actor)-[:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(a2:Actor)
+WHERE a1.actorId < a2.actorId AND m.releaseYear > 2010
+RETURN a1.name AS actor1,
+       a2.name AS actor2,
+       m;
+
+// (d) Find all movies produced by "Emma Thomas"
+MATCH (p:Producer {name:"Emma Thomas"})-[:PRODUCED]->(m:Movie)
+RETURN m.title AS movie;
+
+-------------------- (5) --------------------
+
+// (a) Find all friends of "John", along with the year since John knows them
+MATCH (john:Person {name:"John"})-[r:Friend_of]->(friend:Person)
+RETURN friend.name AS friend, r.since AS since;
+
+// (b) List out the affiliations of John
+MATCH (john:Person {name:"John"})-[:Affiliated_to]->(a:Affiliation)
+RETURN a.name AS affiliation;
+
+// (c) Find all friends of John who are born in the same year as John
+MATCH (john:Person {name:"John"})-[r:Friend_of]->(friend:Person)
+WHERE friend.birthYear = john.birthYear
+RETURN friend.name AS friend;
+
+// (d) List out the messages posted by John in his timeline during the year 2015
+MATCH (john:Person {name:"John"})-[:Creates]->(t:Timeline {year:2015})-[:Contains]->(m:Message)
+WHERE m.sentOn >= date("2015-01-01") AND m.sentOn < date("2016-01-01")
+RETURN m.content AS message, m.sentOn AS date;
+
