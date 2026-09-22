@@ -81,7 +81,7 @@ As more coursework is completed, additional semesters, subjects, assignments, pr
 
 The goal is simple:
 
-**I did it for love. I did it for fun. Couldn't get enough **
+**I did it for love. I did it for fun. Couldn't get enough**
 
 ---
 
