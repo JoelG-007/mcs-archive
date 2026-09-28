@@ -12,7 +12,7 @@ int main(){
         ptr[i] = i + 1;
 
     printf("Memory allocated successfully.\n");
-    free(ptr);
+    free(ptr);      // fix
     ptr = NULL;
     printf("Memory released successfully.\n");
     return 0;
