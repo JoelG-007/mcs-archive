@@ -1,5 +1,6 @@
 1. ====================  Find employees having designation as either ‘manager’ or ‘floor supervisor’. ====================
 
+
 db.Employee.find({$or: [{ designation: "Supervisor" },{ designation: "Floor Manager" }]}, {_id:0})
 
 

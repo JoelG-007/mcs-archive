@@ -34,6 +34,7 @@ mcs-archive/
     │   ├── Assignment 2/
     │   ├── Assignment 3/
     │   ├── Assignment 4/
+    |   ├── Assignment 5/
     │   └── Practice Assignment/
     │       ├── README.md
     │       └── Lab/
@@ -44,6 +45,7 @@ mcs-archive/
     │   ├── Assignment 3.txt
     │   ├── Assignment 4.txt
     │   ├── Assignment 5.txt
+    │   ├── Assignment 6.txt
     │   └── images/
     │
     └── Principles of Programming Language/
