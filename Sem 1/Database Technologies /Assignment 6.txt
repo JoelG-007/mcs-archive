@@ -1,6 +1,5 @@
 Assignment 6: (Complex) Queries
 
-
 -------------------- (1) LIBRARY DATABASE --------------------
 
 // (a) List all readers who have recommended either "The Lord of the Rings", "The Hobbit" or "Dune"
@@ -55,7 +54,6 @@ WHERE booksRead >= 3
 RETURN r.name AS reader, booksRead
 ORDER BY booksRead DESC, reader;
 
-
 -------------------- (2) SONG DATABASE --------------------
 
 // (a) List the names of artists who have sung only songs written by "Kevin Parker"
@@ -78,7 +76,6 @@ ORDER BY artist;
 MATCH (:RecordingCompany {name:"Universal Music"})-[:Finances]->(s:Song)<-[:Performs]-(:Artist {name:"Tame Impala"})
 RETURN s.title AS song
 ORDER BY song;
-
 
 -------------------- (3) EMPLOYEE DATABASE --------------------
 
@@ -108,9 +105,7 @@ MATCH (:Employee {name:"Schnauder Roist"})-[:Manages]->(d:Department)<-[:Control
 RETURN p.name AS project, d.name AS department
 ORDER BY project;
 
-
 PRACTICE ASSIGNMENTS
-
 
 -------------------- (4) MOVIE DATABASE --------------------
 
@@ -154,7 +149,6 @@ UNWIND rows AS row
 WITH row, maxReviews
 WHERE row.reviews = maxReviews
 RETURN row.movie AS movie, row.reviews AS reviews;
-
 
 -------------------- (5) SOCIAL NETWORK DATABASE --------------------
 
